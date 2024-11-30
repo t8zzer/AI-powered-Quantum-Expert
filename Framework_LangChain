@@ -1,1 +1,73 @@
-Hier ist Platz für Code.
+pip install -U langchain-community
+pip install pypdf
+pip install tiktoken
+
+# alternativ kann cpu auch durch gpu ersetzt werden
+# Auswirkungen durch die Umstellung auf gpu sind noch nicht bekannt
+pip install faiss-cpu
+
+# um sicher zu gehen, dass die neueste version von openai installiert ist
+!pip install --upgrade openai
+
+import openai
+from langchain.vectorstores import FAISS
+from langchain.embeddings import OpenAIEmbeddings
+
+# OpenAI API-Schlüssel setzen
+# Open API-Schlüssel wird hier vllt nicht benötigt, da dieser in Zeile 21 gesetzt wird (muss noch geprüft werden)
+OPENAI_API_KEY = "API_Key"
+
+import os
+os.environ["OPENAI_API_KEY"] = "API_Key"
+
+from langchain.document_loaders import PyPDFLoader
+# Lade eine PDF-Datei
+# PDF-Datei in Google Colab abelgen und den Namen hier eintragen für load
+loader = PyPDFLoader("load.pdf")
+documents = loader.load()
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+chunks = text_splitter.split_documents(documents)
+
+#vllt das embedding Model ändern
+#Ausgeben lassen, wie viel des Textes embedded werden konnte oder ähnliches um zu schauen, wie erfolgreich das Embedding war (zu späterem Zeitpunkt)
+embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+
+#sorgt dafür, dass die Chunks in Vektoren umgewandelt werden (muss bei jedem neuen Dokument gemacht werden)
+faiss_index = FAISS.from_documents(chunks, embeddings)
+#speichert die zuvor berechnetern bzw. erstellten Vektoren, damit diese nicht neu berechnet / erstellt werden müssen
+faiss_index.save_local("faiss_index")
+
+# 1. Abruf der relevanten Informationen aus FAISS
+#vector_store = embeddings.embed_documents([chunk.page_content for chunk in chunks]) macht das gleiche wie nachfolgende Zeile
+vectorstore = FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+retriever = vectorstore.as_retriever()
+
+#User Input hier nachfolgend eingeben
+query = "User Input hier eingeben"
+retrieved_docs = retriever.get_relevant_documents(query)
+
+# Extrahiere den Inhalt der Dokumente
+retrieved_content = "\n".join([doc.page_content for doc in retrieved_docs])
+
+# 2. Erstelle den Prompt für ChatGPT
+prompt = f"""
+Hier sind einige relevante Informationen aus meiner Wissensdatenbank:
+{retrieved_content}
+
+Nutze diese Informationen, um die folgende Frage zu beantworten:
+{query}
+"""
+
+# 3. Sende den Prompt an die OpenAI-API
+response =  openai.chat.completions.create(
+    # Das Model kann wenn gewünscht angepasst werden (s. nachfolgender Link für mögliche Modelle)
+    # https://platform.openai.com/docs/models
+    model="gpt-4o-mini",
+    messages=[{"role": "system", "content": "Du bist ein hilfreicher Assistent."},
+              {"role": "user", "content": prompt}]
+)
+
+# Ausgabe der Antwort
+print(response.choices[0].message.content)
