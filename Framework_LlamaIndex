@@ -1,7 +1,7 @@
 #use jupyter notebook
 #make sure to install llamaindex before using the code
 #please do not hard-code the API key; use it as an environment var
-#v 1.0.1
+#v1.0.1
 import os
 
 # set OpenAI API key
