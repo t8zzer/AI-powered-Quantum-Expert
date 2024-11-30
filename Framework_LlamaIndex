@@ -1,1 +1,64 @@
-Hier ist Platz für Code.
+#use jupyter notebook
+#make sure to install llamaindex before using the code
+#please do not hard-code the API key; use it as an environment var
+#v 1.0.1
+import os
+
+# set OpenAI API key
+os.environ["OPENAI_API_KEY"] = "xxxx"
+
+import os.path
+#import important modules/packages/libs
+from llama_index.core import (
+    VectorStoreIndex,
+    SimpleDirectoryReader,
+    StorageContext,
+    load_index_from_storage,
+)
+
+# check if storage already exists
+PERSIST_DIR = "./storage"
+#if not:
+if not os.path.exists(PERSIST_DIR):
+    # load the documents and create the index
+    # load pdfs from directory: data with simpledirectoryreader
+    documents = SimpleDirectoryReader("data").load_data()
+    #set chunk size and overlap (please test)
+    Settings.chunk_size = 512
+    Settings.chunk_overlap = 50
+
+    #creates index for documents
+    #vectorestoreindex=indexing structure (for storing and searching indexes), stores docs as vectors in a vectorstore
+    #index is an object that contains all docs as vectors 
+    index = VectorStoreIndex.from_documents(documents,
+)
+
+    #index = VectorStoreIndex.from_documents(documents)
+    # store index for later (persistent=on the hard drive)
+    #WHERE does llamaindex store the index??
+    index.storage_context.persist(persist_dir=PERSIST_DIR)
+else:
+    # load existing index
+    storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR)
+    index = load_index_from_storage(storage_context)
+
+#query the index
+#query_engine = index.as_query_engine() #works as well
+query_engine = index.as_query_engine(similarity_top_k=4)
+#example questions
+response = query_engine.query("Can you please sum up the introduction to multicast?")
+print(response)
+response = query_engine.query("Can you please complete the following sentence: Multicast communication requires...")
+print(response)
+response = query_engine.query("Kannst du mir die Folie ausgeben, auf welcher dieses Ergebnis steht?")
+print(response)
+response = query_engine.query("Nutzt du zum Abfragen und Antworten nur das angebundene PDF?")
+print(response)
+response = query_engine.query("pourquoi utilisez-vous les PDF liés ?")
+print(response) #english response
+response = query_engine.query("Sicher, dass du Seite 11 meintest?") #sure?
+print(response)
+response = query_engine.query("Can you please tell me what information I can find on page 11")
+print(response) #true
+response = query_engine.query("What did I asked you?")
+print(response)
