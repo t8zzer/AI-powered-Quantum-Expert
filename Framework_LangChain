@@ -21,10 +21,12 @@ import os
 os.environ["OPENAI_API_KEY"] = "API_Key"
 
 from langchain.document_loaders import PyPDFLoader
-# Lade eine PDF-Datei
-# PDF-Datei in Google Colab abelgen und den Namen hier eintragen für load
-loader = PyPDFLoader("load.pdf")
-documents = loader.load()
+# Load each PDF file individually and combine the documents
+documents = []
+# replace "/path/to/your/directory/" with your local path file or type in the file names you have uploaded in Google Colab
+for file_path in ["/path/to/your/directory/"]:
+    loader = PyPDFLoader(file_path)  # Create a new loader for each file
+    documents.extend(loader.load())  # Extend the documents list with loaded documents
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
