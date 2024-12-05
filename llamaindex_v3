@@ -1,12 +1,12 @@
 #-----------------Installierungen----------------------------
 #Note: Be aware to have the latest version of python installed!
 
-#pip install 
-#python-dotenv 
-#llama-index openai
+#pip install python-dotenv 
+#pip install llama-index openai
 #if the storage already exists, you cant load more docs into the rag pipeline
 #pip install faiss-cpu
 #pip install -U llama-index llama-index-embeddings-nomic
+#pip install nest_asyncio
 
 #-----------Hier startet der Code-----------------------------
 #Import of libraries
