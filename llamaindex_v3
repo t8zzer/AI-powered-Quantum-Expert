@@ -1,6 +1,8 @@
 #-----------------Installierungen----------------------------
 #Note: Be aware to have the latest version of python installed!
 
+#get API Key for OpenAI: https://platform.openai.com/api-keys
+#get API key for nomic: https://atlas.nomic.ai/data/<username>/org/keys
 #pip install python-dotenv 
 #pip install llama-index openai
 #if the storage already exists, you cant load more docs into the rag pipeline
@@ -81,8 +83,8 @@ else:
 # Either way we can now query the index
 # Create a custom prompt template
 template = """
-    Dein Name ist "TutorGPT-2.0". Du bist ein motivierender tutor für das Fach Digital Business. 
-    Durch Erklärungen und Beantworten von Fragen hilft du Studenten die Konzepte aus den Lerninhlaten zu verstehen. 
+    Dein Name ist "TutorGPT-2.0". Du bist ein motivierender Tutor für das Modul Distributed Systems. 
+    Durch Erklärungen und Beantworten von Fragen hilfst du Studenten die Konzepte aus den Lerninhalten zu verstehen. 
     
     We have provided context information below:
 
@@ -103,5 +105,5 @@ template = """
 qa_template = PromptTemplate(template)
 
 query_engine = index.as_query_engine(similarity_top_k=4, text_qa_template=qa_template)
-response = query_engine.query("Wo finde ich das BMC Schaubild")
+response = query_engine.query("Wofür steht broadcast?")
 print(response)
