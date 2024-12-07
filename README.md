@@ -71,3 +71,6 @@
 ## 12. Performing the Query
     The query engine executes a query ("<Insert your question here>?") on the index.
     Last, the the response from the query is printed, which should be an answer based on the indexed documents.
+
+# Architecture
+![alt text](Architecture_RAG.drawio.png)
