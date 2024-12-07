@@ -1,25 +1,16 @@
-#-----------------Installierungen----------------------------
-#Note: Be aware to have the latest version of python installed!
+"""
+This script uses the llamaindex framework to recreate the TutorGPT based on the RAG approach and using a LLM.
+"""
+#version: v3.2
 
-#get API Key for OpenAI: https://platform.openai.com/api-keys
-#get API key for nomic: https://atlas.nomic.ai/data/<username>/org/keys
-#pip install python-dotenv 
-#pip install llama-index openai
-#if the storage already exists, you cant load more docs into the rag pipeline
-#pip install llama-index-vector-stores-faiss faiss-cpu
-#pip install faiss-cpu
-#pip install -U llama-index llama-index-embeddings-nomic
-#pip install nest_asyncio
-
-#-----------Hier startet der Code-----------------------------
 #Import of libraries
-from dotenv import load_dotenv
 import os
 import logging
 import sys
 import os.path
 import faiss
 import nest_asyncio
+from dotenv import load_dotenv
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.nomic import NomicEmbedding
 from llama_index.vector_stores.faiss import FaissVectorStore
@@ -32,19 +23,19 @@ from llama_index.core import (
     load_index_from_storage,
 )
 
-#Access api_key form .env-file
+#Access api_key and nomic_api_key from .env-file
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 nomic_api_key = os.getenv ("NOMIC_API_KEY")
 
-
-
+#Initialize the embed model
 embed_model = NomicEmbedding(
     api_key=nomic_api_key,
-    dimensionality=256,
+    dimensionality=256, #lenght of the vector
     model_name="nomic-embed-text-v1.5",
 )
 
+#The LLM model, which will be used
 llm = OpenAI(model="gpt-3.5-turbo")
 
 #Change the llm-model & embedding-model(globally)
@@ -55,20 +46,20 @@ Settings.embed_model = embed_model
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__) #http request
 
-# check if storage already exists
+#Check if storage already exists
 PERSIST_DIR = "./storage"
 if not os.path.exists(PERSIST_DIR):
     logger.info("Erstelle neuen Index, da kein persistierter Speicher gefunden wurde...")
-    # load the documents and create the index
+    #Load the documents and create the index
     documents = SimpleDirectoryReader("data").load_data()
 
-    #Chun-zise and overlap can be adjusted
+    #Chunk-size and overlap can be adjusted
     Settings.chunk_size = 256
     Settings.chunk_overlap = 25
 
     #FAISS based vectorstore
-    d=256
-    faiss_index = faiss.IndexFlatL2(d)  # 512 ist die Dimension des Embeddings, 1536 für gpt-3.5-embeddings
+    d=256 #256 is the dimensionality used for nomic, 1536 is the dimensionality for gpt-3.5-embeddings
+    faiss_index = faiss.IndexFlatL2(d)
     vector_store = FaissVectorStore(faiss_index=faiss_index)
 
     index = VectorStoreIndex.from_documents(documents=documents, vector_store=vector_store)
@@ -81,13 +72,10 @@ else:
     storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR)
     index = load_index_from_storage(storage_context)
 
-# Either way we can now query the index
 # Create a custom prompt template
 template = """
-    Dein Name ist "TutorGPT-2.0". Du bist ein motivierender Tutor für das Modul Distributed Systems. 
-    Durch Erklärungen und Beantworten von Fragen hilfst du Studenten die Konzepte aus den Lerninhalten zu verstehen. 
-    
-    Your name is "TutorGPT2.0“. You are an upbeat and encouraging tutor for Distributed Systems. 
+
+    Your name is "TutorGPT2.0". You are an upbeat and encouraging tutor for Distributed Systems. 
     You help students understand concepts by explaining ideas and answering questions. 
     You encourage interaction, practice, and creation over passive learning, and help students reflect on their thought processes to generalize skills. 
     You stimulate interest in learning and strengthen the learner's self-efficacy.
@@ -112,10 +100,12 @@ template = """
 
     Answer the question: {query_str}
     """
-
-
+#Use the template
 qa_template = PromptTemplate(template)
 
+#Query the index
 query_engine = index.as_query_engine(similarity_top_k=4, text_qa_template=qa_template)
+
+#Ask a question and print the response
 response = query_engine.query("Wofür steht broadcast?")
 print(response)
