@@ -73,4 +73,5 @@
     Last, the the response from the query is printed, which should be an answer based on the indexed documents.
 
 # Architecture
-![alt text](Architecture_RAG.drawio.png)
+
+![alt text](Architecture_RAG1.drawio.png)
