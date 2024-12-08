@@ -1,7 +1,7 @@
 """
 This script uses the llamaindex framework to recreate the TutorGPT based on the RAG approach and using a LLM.
 """
-#version: v3.2
+#version: v3.2.1
 
 #Import of libraries
 import os
@@ -22,12 +22,17 @@ from llama_index.core import (
     PromptTemplate,
     load_index_from_storage,
 )
+#Add logging to get a more detailed view on the running code
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger(__name__) #http request
 
+logger.info("Loading API keys...")
 #Access api_key and nomic_api_key from .env-file
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 nomic_api_key = os.getenv ("NOMIC_API_KEY")
 
+logger.info("Initializing the embed model...")
 #Initialize the embed model
 embed_model = NomicEmbedding(
     api_key=nomic_api_key,
@@ -35,6 +40,7 @@ embed_model = NomicEmbedding(
     model_name="nomic-embed-text-v1.5",
 )
 
+logger.info("Initializing the llm...")
 #The LLM model, which will be used
 llm = OpenAI(model="gpt-3.5-turbo")
 
@@ -42,14 +48,10 @@ llm = OpenAI(model="gpt-3.5-turbo")
 Settings.llm = llm
 Settings.embed_model = embed_model
 
-#Add logging to get a more detailed view on the running code
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logger = logging.getLogger(__name__) #http request
-
 #Check if storage already exists
 PERSIST_DIR = "./storage"
 if not os.path.exists(PERSIST_DIR):
-    logger.info("Erstelle neuen Index, da kein persistierter Speicher gefunden wurde...")
+    logger.info("Creating new index because no persistent storage was found...")
     #Load the documents and create the index
     documents = SimpleDirectoryReader("data").load_data()
 
@@ -58,7 +60,7 @@ if not os.path.exists(PERSIST_DIR):
     Settings.chunk_overlap = 25
 
     #FAISS based vectorstore
-    d=256 #256 is the dimensionality used for nomic, 1536 is the dimensionality for gpt-3.5-embeddings
+    d=256 #256 is the dimensionality used for nomic
     faiss_index = faiss.IndexFlatL2(d)
     vector_store = FaissVectorStore(faiss_index=faiss_index)
 
@@ -66,7 +68,7 @@ if not os.path.exists(PERSIST_DIR):
     # store it for later
     index.storage_context.persist(persist_dir=PERSIST_DIR)
 else:
-    logger.info("Lade bestehenden Index aus dem persistierten Speicher...")
+    logger.info("Load existing index from persisted storage...")
     
     # load the existing index
     storage_context = StorageContext.from_defaults(persist_dir=PERSIST_DIR)
@@ -83,7 +85,7 @@ template = """
 
     {context_str}
 
-    Introduce yourself as their "TutorGPT2“.0, ready to help with any questions. Think step by step and reflect on each step before you answer the question:
+    Introduce yourself as their "TutorGPT2.0", ready to help with any questions. Think step by step and reflect on each step before you answer the question:
     Follow these principles in your answers:
     1. Answer precisely based on the context.
     2. Provide credible resources.
@@ -97,15 +99,23 @@ template = """
     10. Do not claim to take real-world actions; encourage learners to look things up.
     11. Be helpful, not evasive.
     12. Be harmless.
+    13. Apply the above points to any other language you can.
+    14. Answer in the language in which the question is asked.
 
     Answer the question: {query_str}
     """
+
 #Use the template
+logger.info("Apply the given template...")
 qa_template = PromptTemplate(template)
 
+logger.info("Queriying the index...")
 #Query the index
 query_engine = index.as_query_engine(similarity_top_k=4, text_qa_template=qa_template)
 
+logger.info("Ready to accept a question...")
+
 #Ask a question and print the response
-response = query_engine.query("Wofür steht broadcast?")
+response = query_engine.query("What is broadcast?")
+
 print(response)

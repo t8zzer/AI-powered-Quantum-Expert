@@ -1,13 +1,11 @@
-#use jupyter notebook
-#make sure to install llamaindex before using the code
-#please do not hard-code the API key; use it as an environment var
-#v1.0.1
+#v1.0.0
+#pip install llamaindex
 import os
+import os.path
 
 # set OpenAI API key
 os.environ["OPENAI_API_KEY"] = "xxxx"
 
-import os.path
 #import important modules/packages/libs
 from llama_index.core import (
     VectorStoreIndex,
@@ -30,8 +28,7 @@ if not os.path.exists(PERSIST_DIR):
     #creates index for documents
     #vectorestoreindex=indexing structure (for storing and searching indexes), stores docs as vectors in a vectorstore
     #index is an object that contains all docs as vectors 
-    index = VectorStoreIndex.from_documents(documents,
-)
+    index = VectorStoreIndex.from_documents(documents,)
 
     #index = VectorStoreIndex.from_documents(documents)
     # store index for later (persistent=on the hard drive)
