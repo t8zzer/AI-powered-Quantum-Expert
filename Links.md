@@ -1,6 +1,5 @@
 ***Hier sollen alle Links für das Projekt gesammelt und geteilt werden***
 
-
 **AWS Services**
 AWS Bedrock (Doku von Llamaindex direkt)
 
