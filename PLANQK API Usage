@@ -1,0 +1,49 @@
+pip install --upgrade planqk-service-sdk
+
+from planqk.service.client import PlanqkServiceClient
+
+# Deine Consumer Key und Secret
+# Kann mit diesem Key und Secret ausgeführt werden oder durch eigene ersetzt werden
+consumer_key = "8FIPTn6Sayn7WZrYj4hqoRJzqw0a"
+consumer_secret = "nneXLux8ODPxRT92_x2vgFH9LUsa"
+
+# Service-Endpunkt
+service_endpoint = "https://gateway.platform.planqk.de/kipu-quantum/kipu-digitized-counterdiabatic-quantum-optimization---dcqo/1.0.0"
+
+client = PlanqkServiceClient(service_endpoint, consumer_key, consumer_secret)
+
+# Beispiel für Eingabedaten und Parameter
+data = {
+    "optimization": {
+        "coefficients": {
+            "(0,)": 0.05009721367530462,
+            "(0, 1)": 0.1589373302733451,
+            "(0, 2)": -0.1465938630044573,
+            "(0, 3)": 0.1444447352374391,
+            "(1,)": -0.008103805367511346,
+            "(1, 2)": -0.10385855447216596,
+            "(1, 3)": 0.014771937124279128,
+            "(2,)": -0.5638808178837599,
+            "(2, 3)": -0.1014721471152484,
+            "(3,)": 0.023722798165331543
+        },
+        "annealing_time": 0.7,
+        "trotter_steps": 2,
+        "mode": "CD"
+    }
+}
+
+params = {
+    "backend": "azure.ionq.simulator",
+    "shots": 1024
+}
+
+# Ausführung starten
+job = client.start_execution(data=data, params=params)
+
+# Status der Ausführung überprüfen
+status = client.get_status(job.id)
+
+# Ergebnis der Ausführung abrufen
+result = client.get_result(job.id)
+print("Ergebnis:", result)
