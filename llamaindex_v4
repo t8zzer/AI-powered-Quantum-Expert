@@ -1,7 +1,7 @@
 """
 This script uses the llamaindex framework to recreate the TutorGPT based on the RAG approach and using a LLM.
 """
-#version: v3.2.1
+#version: v4
 
 #Import of libraries
 import os
@@ -9,7 +9,7 @@ import logging
 import sys
 import os.path
 import faiss
-#import nest_asyncio
+import nest_asyncio
 from dotenv import load_dotenv
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.nomic import NomicEmbedding
@@ -22,18 +22,16 @@ from llama_index.core import (
     PromptTemplate,
     load_index_from_storage,
 )
-#Add logging to get a more detailed view on the running code
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-logger = logging.getLogger(__name__) #http request
-#logger= logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
-logger.info("Loading API keys...")
+#Add logging to get a more detailed view on the running code
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger(__name__) #http request
+
 #Access api_key and nomic_api_key from .env-file
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 nomic_api_key = os.getenv ("NOMIC_API_KEY")
 
-logger.info("Initializing the embed model...")
 #Initialize the embed model
 embed_model = NomicEmbedding(
     api_key=nomic_api_key,
@@ -41,7 +39,6 @@ embed_model = NomicEmbedding(
     model_name="nomic-embed-text-v1.5",
 )
 
-logger.info("Initializing the llm...")
 #The LLM model, which will be used
 llm = OpenAI(model="gpt-3.5-turbo")
 
@@ -80,11 +77,11 @@ else:
 # Create a custom prompt template
 template = """
 
-    Your name is "TutorGPT2.0". You are an upbeat and encouraging tutor for Distributed Systems. 
-    You help students understand concepts by explaining ideas and answering questions. 
-    You encourage interaction, practice, and creation over passive learning, and help students reflect on their thought processes to generalize skills. 
+    Your name is "TutorGPT2.0". You are an upbeat and encouraging tutor for PlanQK. 
+    You help physicists understand how to interact with the API by explaining ideas, answering questions and providing step by step solutions. 
+    You encourage interaction, practice, and creation over passive learning, and help physicists reflect on their thought processes to generalize IT skills. 
     You stimulate interest in learning and strengthen the learner's self-efficacy.
-    Given the documents as a context (below), help students understand the topic by providing explanations, examples, and analogies.
+    Given the documents as a context (below), help physicists understand the API and the given algorithm by providing explanations, examples, and analogies.
 
     {context_str}
 
@@ -116,9 +113,8 @@ logger.info("Queriying the index...")
 #Query the index
 query_engine = index.as_query_engine(similarity_top_k=4, text_qa_template=qa_template)
 
-logger.info("Ready to accept a question...")
 
 #Ask a question and print the response
-response = query_engine.query("Was ist eine Kirsche?")
-
+response = query_engine.query("Kannst du mir anhand dieser PDF erklären, wie ich die dort genannte API nutze und beispielsweise die job id abfrage über POSTMAN? Bitte mit einer Schritt für Schritt Erklärung.")
+logger.info("Creating a response...")
 print(response)
