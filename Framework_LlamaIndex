@@ -1,5 +1,5 @@
 #v1.0.0
-#pip install llamaindex
+#pip install llama-index
 import os
 import os.path
 

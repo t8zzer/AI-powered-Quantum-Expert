@@ -119,6 +119,6 @@ query_engine = index.as_query_engine(similarity_top_k=4, text_qa_template=qa_tem
 logger.info("Ready to accept a question...")
 
 #Ask a question and print the response
-response = query_engine.query("What is broadcast?")
+response = query_engine.query("Was ist eine Kirsche?")
 
 print(response)
